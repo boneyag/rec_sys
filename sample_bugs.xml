@@ -1,0 +1,372 @@
+<root>
+  <BugReport ID="1">
+    <Title>
+      "(495584) Firefox - search suggestions passes wrong previous result to form history"
+    </Title>
+    <Turn>
+      <Date>'2009-05-29 20:32:54'</Date>
+      <From>'Justin Dolske'</From>
+      <Text>
+        <Sentence ID="1.1">
+          MattN noticed a problem with the WIP patch from bug 469443 applied.
+        </Sentence>
+        <Sentence ID="1.2">
+          When typing in the search box, sometimes search-suggestion entries would be displayed above the divider (where entries for previous matching searches are).
+        </Sentence>
+        <Sentence ID="1.3">
+          The problem here is that nsSearchSuggestions.js is passing the wrong previousResult to form history.
+        </Sentence>
+        <Sentence ID="1.4">
+          Instead of it being the previous form history search result, it's the SuggestAutoCompleteResult result (which contains the union of the form-history and search-suggest entries).
+        </Sentence>
+        <Sentence ID="1.5">
+          So, when form history refines its results as you time, it can actually add *more* entries as data leaks from the suggestions result into form history result, and it thus looks like the divider is being drawn in the wrong place.
+        </Sentence>
+        <Sentence ID="1.6">
+          This bug wasn't visible before 469443, because nsFormFillController::StartSearch tries to QI the provided result to a nsIAutoCompleteSimpleResult.
+        </Sentence>
+        <Sentence ID="1.7">
+          The search-suggestion result is only implements nsIAutoCompletResult (no \"Simple\"), so the QI fails, historyResult nee previousResult becomes null, and thus Satchel was doing a new search every time.
+        </Sentence>
+        <Sentence ID="1.8">
+          EG:</Sentence>
+        <Sentence ID="1.9">
+          1) type \"b\" in the search field.</Sentence>
+        <Sentence ID="1.10">
+          2) form history finds 1 entry (\"blah\"), search-suggestions finds \"baaa\", \"bloop\", \"bzzz\", the autocompete menu shows these in order with a divider between \"blah\" and \"baaa\".
+        </Sentence>
+        <Sentence ID="1.11">
+          3) type an \"l\" in the search field (\"bl\")</Sentence>
+        <Sentence ID="1.12">
+          4) startHistorySearch()'s previous result contains [\"blah\", \"baaa\", \"bloop\", \"bzzz\"], Satchel filters this down to [\"blah\", \"bloop\"] to match the new \"bl\" search string
+        </Sentence>
+        <Sentence ID="1.13">
+          5) nsSearchSuggestions's onReadyState() change is called with updated search suggestions, builds up a new list of results, but sees that the form history result now has *two* entries.
+        </Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2009-05-29 20:37:31'</Date>
+      <From>'Justin Dolske'</From>
+      <Text>
+        <Sentence ID="2.1">
+          Created an attachment (id=380567) [details] Patch v.1 (WIP)
+        </Sentence>
+        <Sentence ID="2.2">
+          This fixes the problem, but isn't quite correct...</Sentence>
+        <Sentence ID="2.3">
+          If you type \"a&lt;backspace&gt;b\", satchel trying to use the results from the \"a\" search for the \"b\" search, and so nothing is found.
+        </Sentence>
+        <Sentence ID="2.4">
+          I suspect nsSearchSuggestions needs to throw away the old form history result when the search string changes like this, but I'm not entirely sure it's responsible for doing so, maybe satchel should be smarter about throwing away a previous result
+          when the previous result's search string doesn't have a common prefix.
+        </Sentence>
+        <Sentence ID="2.5">
+          [That seems to be handled somewhere else for normal form field entries, oddly enough.]
+        </Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2009-06-14 18:55:25'</Date>
+      <From>'Justin Dolske'</From>
+      <Text>
+        <Sentence ID="3.1">
+          Created an attachment (id=383211) [details] Patch v.2
+        </Sentence>
+        <Sentence ID="3.2">
+          Ah. So, there's a ._formHistoryResult in the SuggestAutoCompleteResult wrapper (used to combine form history with search suggestions), and also a ._formHistoryResult in SuggestAutoComplete (the service itself, used to hold onto a form history result
+          until a search suggestion is available).
+        </Sentence>
+        <Sentence ID="3.3">
+          The simple fix it to just discard the service's form history result copy when startSearch() is called with a null previous result.
+        </Sentence>
+        <Sentence ID="3.4">
+          Otherwise it's trying to use a old form history result that no longer applies for the search string.
+        </Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2009-06-19 12:07:34'</Date>
+      <From>'Gavin Sharp'</From>
+      <Text>
+        <Sentence ID="4.1">
+          (From update of attachment 383211 [details])</Sentence>
+        <Sentence ID="4.2">
+          Perhaps we should rename one of them to _fhResult just to reduce confusion?
+        </Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2009-06-19 13:17:56'</Date>
+      <From>'Justin Dolske'</From>
+      <Text>
+        <Sentence ID="5.1">
+          (In reply to comment #3)</Sentence>
+        <Sentence ID="5.2">
+          &gt; (From update of attachment 383211 [details] [details])
+        </Sentence>
+        <Sentence ID="5.3">
+          &gt; Perhaps we should rename one of them to _fhResult just to reduce confusion?
+        </Sentence>
+        <Sentence ID="5.4">
+          Good point.</Sentence>
+        <Sentence ID="5.5">
+          I renamed the one in the wrapper to _formHistResult.
+        </Sentence>
+        <Sentence ID="5.6">
+          fhResult seemed maybe a bit too short.</Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2009-06-19 13:20:52'</Date>
+      <From>'Justin Dolske'</From>
+      <Text>
+        <Sentence ID="6.1">
+          Pushed http://hg.mozilla.org/mozilla-central/rev/097598383614
+        </Sentence>
+      </Text>
+    </Turn>
+  </BugReport>
+  <BugReport ID="2">
+    <Title>
+      "(449596) Firefox - remove the browser.sessionstore.enabled pref "
+    </Title>
+    <Turn>
+      <Date>'2008-08-07 07:22:12'</Date>
+      <From>'Simon Bunzli'</From>
+      <Text>
+        <Sentence ID="1.1">
+          That pref was thought to be for extensions which wanted to completely replace our own Session Restore functionality.
+        </Sentence>
+        <Sentence ID="1.2">
+          While this has worked somehow for Tab Mix Plus, we've had several issues with people ending up both Session Restore and Tab Mix Plus disabled (see bug 435055 and its duplicates).
+        </Sentence>
+        <Sentence ID="1.3">
+          Furthermore, there are several code points which will also break when Session Restore has been disabled (such as the list of recently closed tabs).
+        </Sentence>
+        <Sentence ID="1.4">
+          Instead of adding try-catch-blocks wherever we use Session Restore, I'd much rather encourage extensions authors to override both nsSessionStartup and nsSessionStore to provide the same API with their own functionality (or implementing a dummy-API
+          and making sure for themselves that they've correctly replaced all known consumers).
+        </Sentence>
+        <Sentence ID="1.5">
+          This would also make the lives of those other extension authors simpler who so far can't be too sure that the Session Store component actually works (through whatever implementation).
+        </Sentence>
+        <Sentence ID="1.6">
+          Note that privacy concerned users will still be able to disable writing to sessionstore.js through the browser.sessionstore.resume_from_crash pref.
+        </Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2008-08-07 07:42:37'</Date>
+      <From>'Simon Bunzli'</From>
+      <Text>
+        <Sentence ID="2.1">
+          Created an attachment (id=332726) [details]
+        </Sentence>
+        <Sentence ID="2.2">
+          remove the pref</Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2008-08-13 11:37:55'</Date>
+      <From>'Nickolay Ponomarev '</From>
+      <Text>
+        <Sentence ID="3.1">
+          (note: bug 448725 should be wontfixed if this is fixed)
+        </Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2008-08-14 14:08:24'</Date>
+      <From>'Simon Bunzli'</From>
+      <Text>
+        <Sentence ID="4.1">
+          Created an attachment (id=333820) [details]</Sentence>
+        <Sentence ID="4.2">
+          remove (buggy) note from API comments</Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2008-08-18 14:33:16'</Date>
+      <From>'Dietrich Ayala'</From>
+      <Text>
+        <Sentence ID="5.1">
+          (From update of attachment 332726 [details])</Sentence>
+        <Sentence ID="5.2">
+          a problem with this patch is that the session data is still stored in memory while the app is running, and by removing this pref, there's no way to disable that.
+        </Sentence>
+        <Sentence ID="5.3">
+          some users do not want the recently-closed-tabs menu, and others don't want any session tracks stored in memory at all.
+        </Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2008-08-18 14:46:25'</Date>
+      <From>'Simon Bunzli'</From>
+      <Text>
+        <Sentence ID="6.1">
+          (In reply to comment #4)</Sentence>
+        <Sentence ID="6.2">
+          &gt; some users do not want the recently-closed-tabs menu,
+        </Sentence>
+        <Sentence ID="6.3">
+          That's what browser.sessionstore.max_tabs_undo is for: setting it to 0 effectively disables the feature.
+        </Sentence>
+        <Sentence ID="6.4">
+          &gt; and others don't want any session tracks stored in memory at all.
+        </Sentence>
+        <Sentence ID="6.5">
+          Then again, we don't save any data that wouldn't be in memory, anyway, or do we?
+        </Sentence>
+        <Sentence ID="6.6">
+          I'd rather introduce a different pref or different means to cater the privacy sensitive users than have this half-baked cut-it-all pref which AFAICT so far has produced more issues than it's solved.
+        </Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2008-08-19 10:07:17'</Date>
+      <From>'Dietrich Ayala'</From>
+      <Text>
+        <Sentence ID="7.1">
+          (In reply to comment #5)</Sentence>
+        <Sentence ID="7.2">
+          &gt; Then again, we don't save any data that wouldn't be in memory, anyway, or do we?
+        </Sentence>
+        <Sentence ID="7.3">
+          Fair point. I'm not sure.</Sentence>
+        <Sentence ID="7.4">
+          &gt; I'd rather introduce a different pref or different means to cater the privacy sensitive users than have this half-baked cut-it-all pref which AFAICT so far has produced more issues than it's solved.
+        </Sentence>
+        <Sentence ID="7.5">
+          Yes, agreed the pref is not ideal for this purpose.
+        </Sentence>
+        <Sentence ID="7.6">
+          So max_tabs_undo=0 + resume_from_crash=false is fine for now, until proper \"private browsing\" is supported.
+        </Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2008-08-19 10:12:56'</Date>
+      <From>'Dietrich Ayala'</From>
+      <Text>
+        <Sentence ID="8.1">
+          (From update of attachment 332726 [details])</Sentence>
+        <Sentence ID="8.2">
+          &gt;+ // XXXzeniko should't we just disable this item as we disable
+        </Sentence>
+        <Sentence ID="8.3">
+          &gt;+ // the tabbrowser-multiple items above - for consistency?
+        </Sentence>
+        <Sentence ID="8.4">
+          &gt;+ this.mUndoCloseTabMenuItem.hidden =
+        </Sentence>
+        <Sentence ID="8.5">
+          &gt;+ Cc[\"@mozilla.org/browser/sessionstore;1\"].
+        </Sentence>
+        <Sentence ID="8.6">
+          &gt;+ getService(Ci.nsISessionStore).</Sentence>
+        <Sentence ID="8.7">
+          &gt;+ getClosedTabCount(window) == 0;</Sentence>
+        <Sentence ID="8.8">
+          +1</Sentence>
+        <Sentence ID="8.9">
+          r=me</Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2008-08-19 10:22:13'</Date>
+      <From>'Simon Bunzli'</From>
+      <Text>
+        <Sentence ID="9.1">
+          (In reply to comment #7)</Sentence>
+        <Sentence ID="9.2">
+          &gt; +1</Sentence>
+        <Sentence ID="9.3">
+          That's bug 350731.</Sentence>
+        <Sentence ID="9.4">
+          Care to convince mconnor that he's wrong? ;-)</Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2008-08-19 22:49:19'</Date>
+      <From>'Reed Loden'</From>
+      <Text>
+        <Sentence ID="10.1">
+          Pushed as 17120:e712e96d7861 and 17121:adb1ef78dd21.
+        </Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2008-08-20 02:15:09'</Date>
+      <From>'Simon Bunzli'</From>
+      <Text>
+        <Sentence ID="11.1">
+          onemen: This patch significantly affects Tab Mix Plus:
+        </Sentence>
+        <Sentence ID="11.2">
+          Instead of disabling SessionStore, you'll now have to replace it by shipping a component which implements the same API.
+        </Sentence>
+        <Sentence ID="11.3">
+          You should be able to keep that component minimal, though, and just call your own code whenever the API is used.
+        </Sentence>
+        <Sentence ID="11.4">
+          This will make the lives of people using the SessionStore API (such as Session Manager) somewhat simpler, as they can just use the API without having to worry too much about the implementation behind it.
+        </Sentence>
+        <Sentence ID="11.5">
+          If you want to offer the option of switching between your and our implementation, see e.g. the ignore-history component of the Torbutton extension for how to overwrite a component with the original still being available internally (so that you can
+          either pass API calls forward or handle them yourself).
+        </Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2008-08-20 09:46:40'</Date>
+      <From>'Dave Townsend'</From>
+      <Text>
+        <Sentence ID="12.1">
+          Sounds like this has impact for extension authors and so should be documented on MDC
+        </Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2008-08-20 10:10:49'</Date>
+      <From>'onemen'</From>
+      <Text>
+        <Sentence ID="13.1">
+          no problem.</Sentence>
+        <Sentence ID="13.2">
+          current Tabmix dev-build already not disable SessionStore
+        </Sentence>
+        <Sentence ID="13.3">
+          I currently have only one problem , how to disable the restore after restart.
+        </Sentence>
+        <Sentence ID="13.4">
+          can you add a pref for this, or some other way to do it?
+        </Sentence>
+      </Text>
+    </Turn>
+    <Turn>
+      <Date>'2008-08-20 11:04:03'</Date>
+      <From>'Simon Bunzli'</From>
+      <Text>
+        <Sentence ID="14.1">
+          (In reply to comment #12)</Sentence>
+        <Sentence ID="14.2">
+          &gt; I currently have only one problem , how to disable the restore after restart.
+        </Sentence>
+        <Sentence ID="14.3">
+          You've got several options for that:</Sentence>
+        <Sentence ID="14.4">
+          * Set the prefs browser.sessionstore.resume_from_crash and browser.sessionstore.resume_session_once both to false as early as possible and make sure that browser.startup.page isn't 3.
+        </Sentence>
+        <Sentence ID="14.5">
+          * Delete the file sessionstore.js as early as possible (e.g. when the profile-after-change notification is dispatched).
+        </Sentence>
+        <Sentence ID="14.6">
+          * For Firefox 3.1: Respond to the sessionstore-state-read notification by setting the subject's data member to an empty string (cf. bug 448741 comment#6).
+        </Sentence>
+        <Sentence ID="14.7">
+          Or is there a use case I'm missing?</Sentence>
+      </Text>
+    </Turn>
+  </BugReport>
+</root>

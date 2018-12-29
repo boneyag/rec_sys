@@ -1,0 +1,273 @@
+<root>
+  <BugReport ID="1">
+    <Title>
+      "(495584) Firefox - search suggestions passes wrong previous result to form history"
+    </Title>
+    <Annotation>
+      <AbstractiveSummary>
+        <Sentence Links="1.1">
+          A problem was noticed with the WIP patch from bug 469443 applied.
+        </Sentence>
+        <Sentence Links="1.2">
+          When typing in the search box, sometimes search-suggestion entries would be displayed above the divider.
+        </Sentence>
+        <Sentence Links="1.3,1.4">
+          The problem is nsSearchSuggestions.js is passing the SuggestAutoCompleteResult result, instead of it being the previous form history search result.
+        </Sentence>
+        <Sentence Links="1.6">
+          The bug wasn't visible before 469443, because nsFormFillController::StartSearch tries QI to provid result to nsIAutoCompleteSimpleResult.
+        </Sentence>
+        <Sentence Links="1.7">
+          The search-suggestion result is nsIAutoCompletResult now, so QI fails and Satchel is doing a new search everytime.
+        </Sentence>
+        <Sentence Links="2.1,2.2">
+          A fix was proposed, but wasn't quite right.</Sentence>
+        <Sentence Links="2.4">
+          Satchel should be smarter about throwing away a previous result when the previous result's search string doesn't have a common prefix.
+        </Sentence>
+        <Sentence Links="3.1,3.3">
+          Another fix was proposed later, where the service's form history result copy is discarded when startSearch() is called with a null previous result.
+        </Sentence>
+        <Sentence Links="3.2">
+          There was a ._formHistoryResult in the SuggestAutoCompleteResult wrapper and also a ._formHistoryResult in SuggestAutoCompleteIt.
+        </Sentence>
+        <Sentence Links="4.2">
+          It was suggested to rename one of them to _fhResult.
+        </Sentence>
+        <Sentence Links="5.5">
+          The one in the wrapper was renamed to _formHistResult.
+        </Sentence>
+        <Sentence Links="6.1">
+          This bug was pushed http://hg.mozilla.org/mozilla-central/rev/097598383614.
+        </Sentence>
+      </AbstractiveSummary>
+      <ExtractiveSummary>
+        <Sentence ID="1.1 "/>
+        <Sentence ID="1.2 "/>
+        <Sentence ID="1.3 "/>
+        <Sentence ID="1.4 "/>
+        <Sentence ID="1.6 "/>
+        <Sentence ID="1.7 "/>
+        <Sentence ID="2.1 "/>
+        <Sentence ID="2.2 "/>
+        <Sentence ID="2.4 "/>
+        <Sentence ID="3.1 "/>
+        <Sentence ID="3.3 "/>
+        <Sentence ID="3.2 "/>
+        <Sentence ID="4.2 "/>
+        <Sentence ID="5.5 "/>
+        <Sentence ID="6.1 "/>
+      </ExtractiveSummary>
+    </Annotation>
+    <Annotation>
+      <AbstractiveSummary>
+        <Sentence Links="1.2">
+          When typing in the search box, sometimes suggestion entries are displayed above the divider, where the previous matching searches are displayed.
+        </Sentence>
+        <Sentence Links="1.3,1.4,1.5">
+          The problem is that nsSearchSuggestions.js is passing the SuggestAutoCompleteResult instead of the previous history search result, so entries from suggestions leak into history result.
+        </Sentence>
+        <Sentence Links="2.1">
+          A patch was added to fix this problem.</Sentence>
+        <Sentence Links="3.1">
+          Further changes added to fix a problem with the patch.
+        </Sentence>
+      </AbstractiveSummary>
+      <ExtractiveSummary>
+        <Sentence ID="1.2 "/>
+        <Sentence ID="1.3 "/>
+        <Sentence ID="1.4 "/>
+        <Sentence ID="1.5 "/>
+        <Sentence ID="2.1 "/>
+        <Sentence ID="3.1 "/>
+        <Sentence ID="1.7 "/>
+        <Sentence ID="1.8 "/>
+        <Sentence ID="1.9 "/>
+        <Sentence ID="1.10 "/>
+        <Sentence ID="1.11 "/>
+        <Sentence ID="1.12 "/>
+        <Sentence ID="1.13 "/>
+        <Sentence ID="2.4 "/>
+        <Sentence ID="2.2 "/>
+        <Sentence ID="3.2 "/>
+        <Sentence ID="3.3 "/>
+        <Sentence ID="3.4 "/>
+        <Sentence ID="6.1 "/>
+      </ExtractiveSummary>
+    </Annotation>
+    <Annotation>
+      <AbstractiveSummary>
+        <Sentence Links="1.2">
+          A problem in search box functionality is noted, which puts search suggestion entries above the divider separating them from previous matching searches.
+        </Sentence>
+        <Sentence Links="1.3,1.4">
+          This is happening because the incorrect data structure is being passed to the form history, which contains both form history and search suggest entries.
+        </Sentence>
+        <Sentence Links="1.5">
+          As the results change as the user types in the search box, this allows suggestions to leak into the form history, resulting in the separator appearing to be in the wrong place.
+        </Sentence>
+        <Sentence Links="2.1,2.2,2.3">
+          An incomplete patch is offered, but the system needs to be smarter about throwing away previous results.
+        </Sentence>
+        <Sentence Links="3.2,3.3">
+          It turns out there are .formHistoryResult fields in two data structures, one of which needs to be discarded.
+        </Sentence>
+        <Sentence Links="4.2,5.5">
+          It is suggested and accepted that one should be renamed for clarity.
+        </Sentence>
+      </AbstractiveSummary>
+      <ExtractiveSummary>
+        <Sentence ID="1.2 "/>
+        <Sentence ID="1.3 "/>
+        <Sentence ID="1.4 "/>
+        <Sentence ID="1.5 "/>
+        <Sentence ID="2.1 "/>
+        <Sentence ID="2.2 "/>
+        <Sentence ID="3.2 "/>
+        <Sentence ID="3.3 "/>
+        <Sentence ID="2.4 "/>
+        <Sentence ID="4.2 "/>
+        <Sentence ID="5.5 "/>
+      </ExtractiveSummary>
+    </Annotation>
+  </BugReport>
+  <BugReport ID="2">
+    <Title>
+      "(449596) Firefox - remove the browser.sessionstore.enabled pref "
+    </Title>
+    <Annotation>
+      <AbstractiveSummary>
+        <Sentence Links="1.1,1.2,1.3">
+          A pref in Firefox provided for Session Store functionality causes problems when users deactivate Session Restore ability.
+        </Sentence>
+        <Sentence Links="1.4,1.5">
+          In order to make removing this pref up, extension authors are suggested to take care of it in their own way.
+        </Sentence>
+        <Sentence Links="5.2,5.3">
+          Some privacy issues are considered when people do not like their session history to be stored.
+        </Sentence>
+        <Sentence Links="6.3,7.6">
+          However, these issues could be resolved by previously provided prefs.
+        </Sentence>
+        <Sentence Links="11.1,11.2,12.1,13.3,14.4,14.5,14.6">
+          Some interferences with other packages is spotted then, but using already provided options or changing the documents will resolve it too.
+        </Sentence>
+      </AbstractiveSummary>
+      <ExtractiveSummary>
+        <Sentence ID="1.1 "/>
+        <Sentence ID="1.2 "/>
+        <Sentence ID="1.3 "/>
+        <Sentence ID="1.4 "/>
+        <Sentence ID="1.5 "/>
+        <Sentence ID="5.2 "/>
+        <Sentence ID="5.3 "/>
+        <Sentence ID="6.3 "/>
+        <Sentence ID="7.6 "/>
+        <Sentence ID="11.1 "/>
+        <Sentence ID="11.2 "/>
+        <Sentence ID="12.1 "/>
+        <Sentence ID="13.3 "/>
+        <Sentence ID="14.4 "/>
+        <Sentence ID="14.5 "/>
+        <Sentence ID="14.6 "/>
+        <Sentence ID="6.5 "/>
+        <Sentence ID="6.6 "/>
+        <Sentence ID="7.5 "/>
+        <Sentence ID="11.4 "/>
+        <Sentence ID="13.2 "/>
+      </ExtractiveSummary>
+    </Annotation>
+    <Annotation>
+      <AbstractiveSummary>
+        <Sentence Links="1.1,1.3">
+          It is suggested to remove the preference that removes the session storing feature, because disabling it breaks some features.
+        </Sentence>
+        <Sentence Links="1.1,1.2">
+          It was originally intended for extensions to disable when they do their own session restore, but can leave users with it still disabled after the extension is disabled.
+        </Sentence>
+        <Sentence Links="1.4">
+          Instead the extension writers should extend the API to do session restoration themselves.
+        </Sentence>
+        <Sentence Links="1.6,6.3">
+          Those users concerned with the privacy implications can disable other settings to effectively to the same thing.
+        </Sentence>
+      </AbstractiveSummary>
+      <ExtractiveSummary>
+        <Sentence ID="1.1 "/>
+        <Sentence ID="1.3 "/>
+        <Sentence ID="1.2 "/>
+        <Sentence ID="1.4 "/>
+        <Sentence ID="1.6 "/>
+        <Sentence ID="6.3 "/>
+        <Sentence ID="1.5 "/>
+        <Sentence ID="5.2 "/>
+        <Sentence ID="5.3 "/>
+        <Sentence ID="6.5 "/>
+        <Sentence ID="6.6 "/>
+        <Sentence ID="7.6 "/>
+        <Sentence ID="11.1 "/>
+        <Sentence ID="11.2 "/>
+        <Sentence ID="11.3 "/>
+        <Sentence ID="11.4 "/>
+        <Sentence ID="11.5 "/>
+      </ExtractiveSummary>
+    </Annotation>
+    <Annotation>
+      <AbstractiveSummary>
+        <Sentence Links="1.1,1.2,1.3">
+          It is suggested that the browser.sessionstore.enabled preference be removed because it isn't working out as expected.
+        </Sentence>
+        <Sentence Links="1.4">
+          An alternative of getting extension authors to override other settings to get the same result is proposed.
+        </Sentence>
+        <Sentence Links="2.2,4.2">
+          A patch is provided.
+        </Sentence>
+        <Sentence Links="5.2,5.3">
+          Possible privacy concerns are raised about how the patch works.
+        </Sentence>
+        <Sentence Links="6.3,6.6">
+          Alternative solutions to the privacy issues are suggested.
+        </Sentence>
+        <Sentence Links="8.8,9.3">
+          A minor change to the patch is given, but this is only because of another bug.
+        </Sentence>
+        <Sentence Links="11.1,11.2">
+          The impacts of this change on another feature, Tab Mix Plus, is listed.
+        </Sentence>
+        <Sentence Links="13.1,13.3,13.4">
+          The owner of this feature doesn't see a major problem, but requests a new preference be added to help with the change.
+        </Sentence>
+        <Sentence Links="14.3">
+          A list of possible work-arounds is given.
+        </Sentence>
+        <Sentence Links="12.1">
+          A request for proper documentation of the change is made.
+        </Sentence>
+      </AbstractiveSummary>
+      <ExtractiveSummary>
+        <Sentence ID="1.1 "/>
+        <Sentence ID="1.2 "/>
+        <Sentence ID="1.3 "/>
+        <Sentence ID="1.4 "/>
+        <Sentence ID="2.2 "/>
+        <Sentence ID="4.2 "/>
+        <Sentence ID="5.2 "/>
+        <Sentence ID="5.3 "/>
+        <Sentence ID="6.3 "/>
+        <Sentence ID="6.6 "/>
+        <Sentence ID="8.8 "/>
+        <Sentence ID="9.3 "/>
+        <Sentence ID="11.1 "/>
+        <Sentence ID="11.2 "/>
+        <Sentence ID="13.1 "/>
+        <Sentence ID="13.3 "/>
+        <Sentence ID="13.4 "/>
+        <Sentence ID="14.3 "/>
+        <Sentence ID="12.1 "/>
+        <Sentence ID="7.5 "/>
+        <Sentence ID="7.6 "/>
+      </ExtractiveSummary>
+    </Annotation>
+  </BugReport>
+</root>
