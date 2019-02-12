@@ -6,7 +6,7 @@ from f_length import slen
 from f_length import slen2
 from f_lexical import weight
 from f_lexical import lex_features
-from key_words import kws
+# from key_words import kws
 from word_count import count
 from model_eval import basic_train_test
 from model_eval import lou
@@ -26,7 +26,7 @@ bug_reports = clean(bug_reports)
 
 pp = pprint.PrettyPrinter(indent=4)
 # pp.pprint(report_structure[0])
-# pp.pprint(bug_reports[1])
+# pp.pprint(bug_reports[0])
 
 word_count = count(bug_reports)
 
@@ -55,21 +55,23 @@ df_summary = summary(ext_summary)
 # basic_train_test(df_len, ext_summary, word_count)
 
 #weight function returns weights (sprob and tprob) and the tokenized sentences 
-# sprob, tprob, r_words = weight(bug_reports)
+sprob, tprob, r_words = weight(bug_reports)
 
+pp.pprint(sprob[1])
 # print(type(sprob[1]), type(tprob[1]), type(r_words[1]))
 # df_lex = lex_features(sprob, tprob, r_words)
 
 #keyword extraction with RAKE
-sentences = kws(bug_reports)
+# sentences = kws(bug_reports)
 # pp.pprint(sentences[1])
 
+# merge two feature dataframes 
 # df_merge = []
 # df_lex2 = []
 # for i in range(len(df_len)):
 #     df_merge.append(pd.concat([df_len[i], df_lex[i]], axis = 1, sort=True)) 
-#     df_lex2.append(pd.concat([df_len[i], df_lex[i]], axis = 1, sort=True))
-#     df_lex2[i].drop(['SLEN', 'SLEN2'], axis=1, inplace = True)
+    # df_lex2.append(pd.concat([df_len[i], df_lex[i]], axis = 1, sort=True))
+    # df_lex2[i].drop(['SLEN', 'SLEN2'], axis=1, inplace = True)
 
 # print(df_lex2[0])
 # print(df_len[0])
@@ -77,3 +79,4 @@ sentences = kws(bug_reports)
 # lou(df_lex2, df_summary, word_count)
 
 # reg_model(df_merge, df_summary, word_count)
+# lou(df_merge, df_summary, word_count)
