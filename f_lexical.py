@@ -7,122 +7,129 @@ import numpy as np
 
 import pprint
 
+pp = pprint.PrettyPrinter(indent=4)
 def weight(reports):
-    
+
     stop_words = set(stopwords.words('english'))
 
-    chars_to_remove = ['?', '!', '[', ']', '`', '\'\'', '<', '>', '(', ')', ',', ':']
-    rx = '[' + re.escape(''.join(chars_to_remove)) + ']'
-
     words = {}
-    i = 1
-    for report in reports:
-        words[i] = []
-        for k1 in report.keys():
-            if (k1 != 'title'):
-                for k2 in report[k1]['text'].keys():
-                    sentence = report[k1]['text'][k2]
-                    sentence = re.sub(r'(?<!\d)\.(?!\d)', '', sentence)
-                    sentence = re.sub(rx, '', sentence)
-                    sentence = sentence.lower()
-                    
-                    word_tokens = word_tokenize(sentence)
-                    for w in word_tokens:
-                        if w not in stop_words:
-                            words[i].append(w)
-        
-        # print(words[i])
-        words[i] = list(filter(None, words[i]))
-        words[i] = list(set(words[i]))
-        # print(words[i])
-        i += 1
-        # break
-
     s_words = {}
     t_words = {}
     r_words = {}
+
+    # pp.pprint(reports[30])
+
     i = 1
     for report in reports:
+        # words dict contains all the word tokens in a bug report
+        # s_word dict contains word tokens by each commentor
+        # t_words dict contains word tokens in each turn
+        # r_words dict contains word tokens in each sentence of a comment
+        words[i] = []
         s_words[i] = {}
         t_words[i] = {}
         r_words[i] = {}
         for k1 in report.keys():
             if (k1 != 'title'):
+                
                 user = report[k1]['user']
                 t_words[i][k1] = []
                 if user not in s_words[i]:
                     s_words[i][user]=[]
-        
-                for k2, v in report[k1]['text'].items():
-                    sentence = v
-                    sentence = re.sub(r'(?<!\d)\.(?!\d)', '', sentence)
-                    sentence = re.sub(rx, '', sentence)
-                    sentence = sentence.lower()
 
-                    word_tokens = word_tokenize(sentence)
+                for k2 in report[k1]['text'].keys():
+                    sentence = report[k1]['text'][k2]
+                    sentence = preprocess(sentence)
                     
+                    word_tokens = word_tokenize(sentence)
+
                     r_words[i][k2] = []
                     temp = []
+
                     for w in word_tokens:
-                        if w not in stop_words:
+                        if ((w not in stop_words) and (len(w)>2)):
+                            if (w not in words[i]):
+                                words[i].append(w)
                             r_words[i][k2].append(w)
                             temp.append(w)
 
                     s_words[i][user].extend(temp)
                     t_words[i][k1].extend(temp)
-        
         i += 1
-        # break
+            
+        for k1 in s_words.keys():
+            for k2 in s_words[k1].keys():
+                s_words[k1][k2] = nltk.FreqDist(s_words[k1][k2])
 
-    for k1 in s_words.keys():
-        for k2 in s_words[k1].keys():
-            s_words[k1][k2] = nltk.FreqDist(s_words[k1][k2])
+        for k1 in t_words.keys():
+            for k2 in t_words[k1].keys():
+                t_words[k1][k2] = nltk.FreqDist(t_words[k1][k2])
+    # print('all tokens in a bug report')
+    # print(words[36])
 
-    for k1 in t_words.keys():
-        for k2 in t_words[k1].keys():
-            t_words[k1][k2] = nltk.FreqDist(t_words[k1][k2])
+    # print('\nall tokens in a bug report by user')
+    # pp.pprint(s_words[36])
 
-    # pp = pprint.PrettyPrinter(indent=4)
-    # pp.pprint(t_words)
-    # pp.pprint(s_words)
-    # pp.pprint(r_words)
+    # print('\nall tokens in a bug report by turn')
+    # pp.pprint(t_words[36])
+
+    # print('\nall tokens in a bug report by sentence')
+    # print(r_words[36])
 
     sprob = {}
     tprob = {}
     for r_key in words.keys():
         sprob[r_key] = {}
-        for i in range(len(words[r_key])-1):
-            max = 0
-            sum = 0
-            for u_key in s_words[r_key].keys():
-                if words[r_key][i] in s_words[r_key][u_key]:
-                    if s_words[r_key][u_key][words[r_key][i]] > max:
-                        max = s_words[r_key][u_key][words[r_key][i]]
-                    sum += s_words[r_key][u_key][words[r_key][i]]
-            if sum != 0:
-                sprob[r_key][words[r_key][i]] = max / sum
-            else:
-                sprob[r_key][words[r_key][i]] = sum
-
         tprob[r_key] = {}
         for i in range(len(words[r_key])-1):
-            max = 0
-            sum = 0
+            s_max = 0
+            s_sum = 0
+            t_max = 0
+            t_sum = 0
+            for u_key in s_words[r_key].keys():
+                if words[r_key][i] in s_words[r_key][u_key]:
+                    if s_words[r_key][u_key][words[r_key][i]] > s_max:
+                        s_max = s_words[r_key][u_key][words[r_key][i]]
+                    s_sum += s_words[r_key][u_key][words[r_key][i]]
+            if s_sum != 0:
+                sprob[r_key][words[r_key][i]] = s_max / s_sum
+            else:
+                sprob[r_key][words[r_key][i]] = s_sum
+
             for t_key in t_words[r_key].keys():
                 if words[r_key][i] in t_words[r_key][t_key]:
-                    if t_words[r_key][t_key][words[r_key][i]] > max:
-                        max = t_words[r_key][t_key][words[r_key][i]]
-                    sum += t_words[r_key][t_key][words[r_key][i]]
-            if sum != 0:
-                tprob[r_key][words[r_key][i]] = max / sum
+                    if t_words[r_key][t_key][words[r_key][i]] > t_max:
+                        t_max = t_words[r_key][t_key][words[r_key][i]]
+                    t_sum += t_words[r_key][t_key][words[r_key][i]]
+            if t_sum != 0:
+                tprob[r_key][words[r_key][i]] = t_max / t_sum
             else:
-                tprob[r_key][words[r_key][i]] = sum
+                tprob[r_key][words[r_key][i]] = t_sum
+            
+    return sprob, tprob, r_words       
 
-    # pp = pprint.PrettyPrinter(indent=4)
-    # pp.pprint(tprob[35])
-    # pp.pprint(sprob[35])
+def preprocess(sentence):
+    sentence = re.sub(r'\'', '', sentence)
+    sentence = re.sub(r'\"', '', sentence)
+    sentence = re.sub(r'\.+$', '', sentence)
+    sentence = re.sub(r'\.+\.', '', sentence)    
+    sentence = re.sub(r'\?', '', sentence)
+    sentence = re.sub(r'^.*\>', '', sentence)
+    sentence = re.sub(r'\(*[0-9]\)', '', sentence)
+    sentence = re.sub(r'..\)', '', sentence)
+    sentence = re.sub(r'\(', '', sentence)
+    sentence = re.sub(r'\)', '', sentence)  
+    sentence = re.sub(r'\[', '', sentence)
+    sentence = re.sub(r'\]', '', sentence)   
+    sentence = re.sub(r'\!', '', sentence) 
+    sentence = re.sub(r',', '', sentence) 
+    # remove URLs
+    sentence = re.sub(r'https?:\/\/.*[\r\n]*', '', sentence, flags=re.MULTILINE)
+    # remove file paths
+    sentence = re.sub(r'(.+\/.+)+[\r\n]*', '', sentence, flags=re.MULTILINE)
+    sentence = sentence.lower()
 
-    return sprob, tprob, r_words
+    return sentence
 
 def lex_features(sprob, tprob, r_words):
 

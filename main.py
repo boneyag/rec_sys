@@ -6,7 +6,10 @@ from f_length import slen
 from f_length import slen2
 from f_lexical import weight
 from f_lexical import lex_features
+
+from f_similaity import sentence_sim
 # from key_words import kws
+from test_probs import test
 from word_count import count
 from model_eval import basic_train_test
 from model_eval import lou
@@ -56,10 +59,14 @@ df_summary = summary(ext_summary)
 
 #weight function returns weights (sprob and tprob) and the tokenized sentences 
 sprob, tprob, r_words = weight(bug_reports)
-
-pp.pprint(sprob[1])
+# pp.pprint(r_words[1])
 # print(type(sprob[1]), type(tprob[1]), type(r_words[1]))
-# df_lex = lex_features(sprob, tprob, r_words)
+df_lex = lex_features(sprob, tprob, r_words)
+
+# test(sprob, tprob, r_words)
+
+#cosine similarity
+# sentence_sim(r_words, sprob, tprob, report_structure)
 
 #keyword extraction with RAKE
 # sentences = kws(bug_reports)
