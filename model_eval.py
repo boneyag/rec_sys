@@ -60,10 +60,10 @@ def lou(features, summaries, word_count):
         i += 1
 
 def merge_data(features):
-    res = pd.concat([features[0],features[1]], ignore_index = True)
+    res = pd.concat([features[0],features[1]], ignore_index = True, sort=False)
     for i in range(2,len(features)):
-        res = pd.concat([res, features[i]], ignore_index = True)
-
+        res = pd.concat([res, features[i]], ignore_index = True, sort=False)
+        
     return res
 
 def match(sorted, w_count, x_test_c, y_test):

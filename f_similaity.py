@@ -1,20 +1,30 @@
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
+import pandas as pd
 import itertools
 import pprint
+
+pp = pprint.PrettyPrinter(indent=4)
 
 def sentence_sim(r_words, s_prob, t_prob, report_structure):
 
     # pp = pprint.PrettyPrinter(indent=4)
     # pp.pprint(r_words[1]['1.1'])
 
+    df_sim = []
+
     for i in range(len(report_structure)):
+        
+        dict_sim = {}
+        # since dictionary keys have no order we create a list of sentence IDs to 
+        # access previous and subsequent sentences
         sentence_ids = []
 
         for key in report_structure[i].keys():
             for k in range(1, report_structure[i][key]+1):
                 id = str(str(key)+'.'+str(k))
                 sentence_ids.append(id)
+        # pp.pprint(s_prob[i+1])
 
         for j in range(len(sentence_ids)):
             if (j == 0):
@@ -24,18 +34,18 @@ def sentence_sim(r_words, s_prob, t_prob, report_structure):
 
                 for e in range(len(vec)):
                     if (vec[e] in r_words[i+1][sentence_ids[j]]):
-                        if (vec[e] in s_prob[i+1]):
-                            docs[0][e] = s_prob[i+1][vec[e]]
+                        # if (vec[e] in s_prob[i+1]):
+                        docs[0][e] = s_prob[i+1][vec[e]]
                     else:
                         docs[0][e] = 0
                     
                     if (vec[e] in r_words[i+1][sentence_ids[j+1]]):
-                        if (vec[e] in s_prob[i+1]):
-                            docs[1][e] = s_prob[i+1][vec[e]]
+                        # if (vec[e] in s_prob[i+1]):
+                        docs[1][e] = s_prob[i+1][vec[e]]
                     else:
                         docs[1][e] = 0
 
-                print(cosine_similarity(docs[0,:].reshape(1, -1), docs[1,:].reshape(1, -1)))
+                dict_sim[sentence_ids[j]] = cosine_similarity(docs[0,:].reshape(1, -1), docs[1,:].reshape(1, -1))
       
             elif (j == len(sentence_ids)-1):
                 vec = list(set(itertools.chain(r_words[i+1][sentence_ids[j-1]], r_words[i+1][sentence_ids[j]])))
@@ -44,18 +54,18 @@ def sentence_sim(r_words, s_prob, t_prob, report_structure):
 
                 for e in range(len(vec)):
                     if (vec[e] in r_words[i+1][sentence_ids[j-1]]):
-                        if (vec[e] in s_prob[i+1]):
-                            docs[0][e] = s_prob[i+1][vec[e]]
+                        # if (vec[e] in s_prob[i+1]):
+                        docs[0][e] = s_prob[i+1][vec[e]]
                     else:
                         docs[0][e] = 0
 
                     if (vec[e] in r_words[i+1][sentence_ids[j]]):
-                        if (vec[e] in s_prob[i+1]):
-                            docs[1][e] = s_prob[i+1][vec[e]]
+                        # if (vec[e] in s_prob[i+1]):
+                        docs[1][e] = s_prob[i+1][vec[e]]
                     else:
                         docs[1][e] = 0
 
-                print(cosine_similarity(docs[0,:].reshape(1, -1), docs[1,:].reshape(1, -1)))
+                dict_sim[sentence_ids[j]] = cosine_similarity(docs[0,:].reshape(1, -1), docs[1,:].reshape(1, -1))
 
             else:
                 vec = list(set(itertools.chain(r_words[i+1][sentence_ids[j-1]], r_words[i+1][sentence_ids[j]], r_words[i+1][sentence_ids[j+1]])))
@@ -64,23 +74,24 @@ def sentence_sim(r_words, s_prob, t_prob, report_structure):
 
                 for e in range(len(vec)):
                     if (vec[e] in r_words[i+1][sentence_ids[j-1]]):
-                        if (vec[e] in s_prob[i+1]):
-                            docs[1][e] = s_prob[i+1][vec[e]]
+                        # if (vec[e] in s_prob[i+1]):
+                         docs[1][e] = s_prob[i+1][vec[e]]
                     else:
-                        docs[1] = 0
+                        docs[1][e] = 0
 
                     if (vec[e] in r_words[i+1][sentence_ids[j]]):
-                        if (vec[e] in s_prob[i+1]):
-                            docs[0][e] = s_prob[i+1][vec[e]]
+                        # if (vec[e] in s_prob[i+1]):
+                        docs[0][e] = s_prob[i+1][vec[e]]
                     else:
                         docs[0][e] = 0
 
                     if (vec[e] in r_words[i+1][sentence_ids[j+1]]):
-                        if (vec[e] in s_prob[i+1]):
-                            docs[2][e] = s_prob[i+1][vec[e]]
+                        # if (vec[e] in s_prob[i+1]):
+                        docs[2][e] = s_prob[i+1][vec[e]]
                     else:
                         docs[2][e] = 0
 
-                print(cosine_similarity(docs[0,:].reshape(1, -1), docs[1,:].reshape(1, -1)))
-                print(cosine_similarity(docs[0,:].reshape(1, -1), docs[2,:].reshape(1, -1)))
-        break
+                dict_sim[sentence_ids[j]] = np.mean(cosine_similarity(docs[0,:].reshape(1, -1), docs[1,:].reshape(1, -1)),
+                cosine_similarity(docs[0,:].reshape(1, -1), docs[2,:].reshape(1, -1)))
+        # break
+        df_sim.append(pd.DataFrame.from_dict(dict_sim, orient = 'index', dtype = float, columns = ['COS1']))

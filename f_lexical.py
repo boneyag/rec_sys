@@ -65,23 +65,23 @@ def weight(reports):
             for k2 in t_words[k1].keys():
                 t_words[k1][k2] = nltk.FreqDist(t_words[k1][k2])
     # print('all tokens in a bug report')
-    # print(words[36])
+    # print(words[1])
 
     # print('\nall tokens in a bug report by user')
-    # pp.pprint(s_words[36])
+    # pp.pprint(s_words[1])
 
     # print('\nall tokens in a bug report by turn')
-    # pp.pprint(t_words[36])
+    # pp.pprint(t_words[1])
 
     # print('\nall tokens in a bug report by sentence')
-    # print(r_words[36])
+    # print(r_words[1])
 
     sprob = {}
     tprob = {}
     for r_key in words.keys():
         sprob[r_key] = {}
         tprob[r_key] = {}
-        for i in range(len(words[r_key])-1):
+        for i in range(len(words[r_key])):
             s_max = 0
             s_sum = 0
             t_max = 0
