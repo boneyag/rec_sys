@@ -27,6 +27,7 @@ def sentence_sim(r_words, s_prob, t_prob, report_structure):
         # pp.pprint(s_prob[i+1])
 
         for j in range(len(sentence_ids)):
+            print(i+1,":",sentence_ids[j])
             if (j == 0):
                 vec = list(set(itertools.chain(r_words[i+1][sentence_ids[j]], r_words[i+1][sentence_ids[j+1]])))
                  
@@ -45,7 +46,8 @@ def sentence_sim(r_words, s_prob, t_prob, report_structure):
                     else:
                         docs[1][e] = 0
 
-                dict_sim[sentence_ids[j]] = cosine_similarity(docs[0,:].reshape(1, -1), docs[1,:].reshape(1, -1))
+                # cosine similarity output is an array(nx_dim, ny_dim). Therefore, to get the value only use [0,0] indexing
+                dict_sim[sentence_ids[j]] = cosine_similarity(docs[0,:].reshape(1, -1), docs[1,:].reshape(1, -1))[0][0]
       
             elif (j == len(sentence_ids)-1):
                 vec = list(set(itertools.chain(r_words[i+1][sentence_ids[j-1]], r_words[i+1][sentence_ids[j]])))
@@ -65,7 +67,7 @@ def sentence_sim(r_words, s_prob, t_prob, report_structure):
                     else:
                         docs[1][e] = 0
 
-                dict_sim[sentence_ids[j]] = cosine_similarity(docs[0,:].reshape(1, -1), docs[1,:].reshape(1, -1))
+                dict_sim[sentence_ids[j]] = cosine_similarity(docs[0,:].reshape(1, -1), docs[1,:].reshape(1, -1))[0][0]
 
             else:
                 vec = list(set(itertools.chain(r_words[i+1][sentence_ids[j-1]], r_words[i+1][sentence_ids[j]], r_words[i+1][sentence_ids[j+1]])))
@@ -91,7 +93,9 @@ def sentence_sim(r_words, s_prob, t_prob, report_structure):
                     else:
                         docs[2][e] = 0
 
-                dict_sim[sentence_ids[j]] = np.mean(cosine_similarity(docs[0,:].reshape(1, -1), docs[1,:].reshape(1, -1)),
-                cosine_similarity(docs[0,:].reshape(1, -1), docs[2,:].reshape(1, -1)))
-        # break
-        df_sim.append(pd.DataFrame.from_dict(dict_sim, orient = 'index', dtype = float, columns = ['COS1']))
+                dict_sim[sentence_ids[j]] = (cosine_similarity(docs[0,:].reshape(1, -1), docs[1,:].reshape(1, -1))[0][0] +
+                cosine_similarity(docs[0,:].reshape(1, -1), docs[2,:].reshape(1, -1))[0][0]) / 2
+            
+        # print(dict_sim)
+            
+        # df_sim.append(pd.DataFrame.from_dict(dict_sim, orient = 'index', dtype = float, columns = ['COS1']))
