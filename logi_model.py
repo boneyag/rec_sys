@@ -35,8 +35,12 @@ def test_logiReg(features, summaries, word_count, s_word_count):
         score = logi_model.score(x_test, y_test.to_numpy().ravel())
         precision = precision_score(y_test, y_predict)
         recall = recall_score(y_test, y_predict)
-        fscore = f1_score(y_test, y_predict)
+        if ((precision == 0.0) or (recall == 0.0)):
+            fscore = 0.0
+        else:
+            fscore = f1_score(y_test, y_predict)
 
+        summary_word_count(y_test.to_numpy().ravel(), word_count[i], s_word_count[i+1])
         print(i,':',score)
         print(i,':',precision)
         print(i,':',recall)
@@ -49,7 +53,7 @@ def test_logiReg(features, summaries, word_count, s_word_count):
         del y_train_list[:]
         del y_train_list
 
-        break
+        # break
 
 def custom_predict(y_prob, word_count, s_word_count_dict):
     
@@ -71,7 +75,7 @@ def custom_predict(y_prob, word_count, s_word_count_dict):
         current_word_count += s_word_count_list[max_index]
         summary_prob[max_index] = -1
 
-        print(current_word_count)
+        # print(current_word_count)
         if current_word_count >= word_count:
             break
 
@@ -79,3 +83,17 @@ def custom_predict(y_prob, word_count, s_word_count_dict):
     # print(summary_prob)
 
     return summary_pred
+
+def summary_word_count(y_test, word_count, s_word_count_dict):
+    s_word_count_list = []
+
+    for key in s_word_count_dict.keys():
+        s_word_count_list.append(s_word_count_dict[key])
+
+    count = 0
+
+    for i in range(len(s_word_count_list)):
+        if (y_test[i] == 1.0):
+            count += s_word_count_list[i]
+
+    print(count,'/',word_count)
