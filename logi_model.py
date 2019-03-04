@@ -6,8 +6,10 @@ import numpy as np
 
 def test_logiReg(features, summaries, word_count, s_word_count):
     
+    res = {}
     for i in range(len(features)):
         # print(i)
+        res[i+1] = {}
         x_train_list = features.copy()
         y_train_list = summaries.copy()
 
@@ -32,7 +34,7 @@ def test_logiReg(features, summaries, word_count, s_word_count):
         # print(logi_model.predict(x_test))
         y_predict = custom_predict(y_prob, word_count[i], s_word_count[i+1])
 
-        score = logi_model.score(x_test, y_test.to_numpy().ravel())
+        # score = logi_model.score(x_test, y_test.to_numpy().ravel())
         precision = precision_score(y_test, y_predict)
         recall = recall_score(y_test, y_predict)
         if ((precision == 0.0) or (recall == 0.0)):
@@ -40,11 +42,17 @@ def test_logiReg(features, summaries, word_count, s_word_count):
         else:
             fscore = f1_score(y_test, y_predict)
 
-        summary_word_count(y_test.to_numpy().ravel(), word_count[i], s_word_count[i+1])
-        print(i,':',score)
-        print(i,':',precision)
-        print(i,':',recall)
-        print(i,':',fscore,'\n')
+        sc = summary_word_count(y_test.to_numpy().ravel(), word_count[i], s_word_count[i+1])
+        # print(i,':',score)
+        # print(i,':',precision)
+        # print(i,':',recall)
+        # print(i,':',fscore,'\n')
+        
+        res[i+1]['precision'] = precision
+        res[i+1]['recall'] = recall
+        res[i+1]['fscore'] = fscore
+        res[i+1]['ex_sum_count'] = sc
+        res[i+1]['word_count'] = word_count[i]
 
         # print(i,':',y_predict,'\n')
         # print(i,':',y_test,'\n')
@@ -54,6 +62,9 @@ def test_logiReg(features, summaries, word_count, s_word_count):
         del y_train_list
 
         # break
+    df_res = pd.DataFrame.from_dict(res, orient='index', dtype = float, columns = ['precision','recall','fscore','ex_sum_count','word_count'])
+
+    return df_res
 
 def custom_predict(y_prob, word_count, s_word_count_dict):
     
@@ -69,7 +80,7 @@ def custom_predict(y_prob, word_count, s_word_count_dict):
         s_word_count_list.append(s_word_count_dict[key])
 
     # print(word_count/4)
-    while current_word_count <= word_count/4:
+    while current_word_count <= word_count * 0.45:
         max_index = summary_prob.index(max(summary_prob))
         summary_pred[max_index] = 1.0
         current_word_count += s_word_count_list[max_index]
@@ -96,4 +107,5 @@ def summary_word_count(y_test, word_count, s_word_count_dict):
         if (y_test[i] == 1.0):
             count += s_word_count_list[i]
 
-    print(count,'/',word_count)
+    # print(count,'/',word_count)
+    return count

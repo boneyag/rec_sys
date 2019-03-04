@@ -39,14 +39,17 @@ def weight(reports):
 
                 for k2 in report[k1]['text'].keys():
                     sentence = report[k1]['text'][k2]
-                    sentence = preprocess(sentence)
                     
+                    # sentence = preprocess(sentence)
+                    # if (i==8) and (k2 == '4.8'):
+                    #     print(sentence)         
                     word_tokens = word_tokenize(sentence)
-
+                    
                     r_words[i][k2] = []
                     temp = []
 
                     for w in word_tokens:
+                        w = preprocess(w)
                         if ((w not in stop_words) and (len(w)>2)):
                             if (w not in words[i]):
                                 words[i].append(w)
@@ -125,8 +128,9 @@ def preprocess(sentence):
     sentence = re.sub(r',', '', sentence) 
     # remove URLs
     sentence = re.sub(r'https?:\/\/.*[\r\n]*', '', sentence, flags=re.MULTILINE)
-    # remove file paths
-    sentence = re.sub(r'(.+\/.+)+[\r\n]*', '', sentence, flags=re.MULTILINE)
+    # remove file paths with at leaset three levels
+    sentence = re.sub(r'(.+\/.+\/.+)+[\r\n]*', '', sentence, flags=re.MULTILINE)
+    sentence = re.sub(r'/',' ', sentence)
     sentence = sentence.lower()
 
     return sentence
@@ -166,15 +170,15 @@ def lex_features(sprob, tprob, r_words):
                 t_temp_avg = 0.0
 
             dict_lex[k2] = {
-                            'SSM': s_temp_sum,
-                            'SMX': s_temp_max,
-                            'SMN': s_temp_avg,
-                            'TSM': t_temp_sum,
-                            'TMX': t_temp_max,
-                            'TMN': t_temp_avg
+                            'SMS': s_temp_sum,
+                            'MXS': s_temp_max,
+                            'MNS': s_temp_avg,
+                            'SMT': t_temp_sum,
+                            'MXT': t_temp_max,
+                            'MNT': t_temp_avg
             }
         
-        df_lex.append(pd.DataFrame.from_dict(dict_lex, orient = 'index', dtype = float, columns = ['SSM','SMX','SMN','TSM','TMX','TMN']))
+        df_lex.append(pd.DataFrame.from_dict(dict_lex, orient = 'index', dtype = float, columns = ['SMS','MXS','MNS','SMT','MXT','MNT']))
 
         # print(df_lex)    
         # break
