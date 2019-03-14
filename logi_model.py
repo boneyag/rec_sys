@@ -34,6 +34,8 @@ def test_logiReg(features, summaries, word_count, s_word_count):
         # print(logi_model.predict(x_test))
         y_predict = custom_predict(y_prob, word_count[i], s_word_count[i+1])
 
+        # if (i+1 == 21):
+        #     print(y_predict)
         # score = logi_model.score(x_test, y_test.to_numpy().ravel())
         precision = precision_score(y_test, y_predict)
         recall = recall_score(y_test, y_predict)
@@ -80,7 +82,7 @@ def custom_predict(y_prob, word_count, s_word_count_dict):
         s_word_count_list.append(s_word_count_dict[key])
 
     # print(word_count/4)
-    while current_word_count <= word_count * 0.45:
+    while current_word_count <= word_count * 0.25:
         max_index = summary_prob.index(max(summary_prob))
         summary_pred[max_index] = 1.0
         current_word_count += s_word_count_list[max_index]

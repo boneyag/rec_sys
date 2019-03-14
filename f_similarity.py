@@ -159,3 +159,66 @@ def sentence_sim(r_words, x_prob, report_structure, num):
         # break
     
     return df_sim
+
+def conversation_sim(r_words, x_prob, report_structure, num):
+
+    df_sim = []
+
+    for i in range(len(report_structure)):
+        
+        dict_sim = {}
+        # since dictionary keys have no order we create a list of sentence IDs one by one
+        sentence_ids = []
+
+        for key in report_structure[i].keys():
+            for k in range(1, report_structure[i][key]+1):
+                id = str(str(key)+'.'+str(k))
+                sentence_ids.append(id)
+        # pp.pprint(x_prob[i+1])
+
+        
+        for j in range(len(sentence_ids)):
+
+            # creating the vocabulary for the bug report
+            vec = []
+            conv = []
+            for k in range(len(sentence_ids)):
+                vec.extend(list(set(itertools.chain(r_words[i+1][sentence_ids[k]]))))
+
+            # creating the vector for the conversation minus the words in the sentence on process
+            for l in range(len(sentence_ids)):
+                if (l == j):
+                    continue
+                else:
+                    conv.extend(list(itertools.chain(r_words[i+1][sentence_ids[l]])))
+
+            docs = np.ndarray(shape=(2,len(vec)))
+
+            for e in range(len(vec)):
+                if (vec[e] in conv):
+                    docs[0][e] = x_prob[i+1][vec[e]]
+                else:
+                    docs[0][e] = 0
+
+                if (vec[e] in r_words[i+1][sentence_ids[j]]):
+                    docs[1][e] = x_prob[i+1][vec[e]]
+                else:
+                    docs[1][e] = 0
+
+
+            dict_sim[sentence_ids[j]] = cosine_similarity(docs[0,:].reshape(1, -1), docs[1,:].reshape(1, -1))[0][0]
+
+
+
+        # print(dict_sim)
+        if (num == 1):
+            df_sim.append(pd.DataFrame.from_dict(dict_sim, orient = 'index', dtype = float, columns = ['CENT1']))
+        
+        if (num == 2):
+            df_sim.append(pd.DataFrame.from_dict(dict_sim, orient = 'index', dtype = float, columns = ['CENT2']))
+
+        # print(df_sim[0])
+
+        # break
+    
+    return df_sim
